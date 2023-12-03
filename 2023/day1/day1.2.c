@@ -6,41 +6,80 @@
 #include <errno.h>
 #include <ctype.h>
 
-FILE* getFile();
-void parseLine(char *line);
-int firstWordNum(char *line);
-int lastWordNum(char *line);
+typedef struct {
+	char *line;
+	int fwnum;
+	int fwpos;
+	int lwnum;
+	int lwpos;
+} result;
+
+typedef struct {
+	int num;
+	int pos;
+} wordNum;
+
+
 const char *wordNums[] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
 const char *wordNumsRev[] = {"eno", "owt", "eerht", "ruof", "evif", "xis", "neves", "thgie", "enin"};
+
+
+FILE* getFile();
+result parseLine(char *line);
+wordNum firstWordNum(char *line);
+wordNum lastWordNum(char *line);
+
 
 int main() 
 {
 	FILE *fp = getFile();
 	char line[255];
+	result res;
+	result results[1024];
+
+	int count = 0;
 
 	while (fgets(line, sizeof(line), fp)) {
-		parseLine(line);
+		res = parseLine(line);
+		results[count++] = res;
+	}
+
+	for (int i = 0; i < count; i++) {
+		printf("%s", results[i].line);
+		printf("fwnum: %d\n", results[i].fwnum);
+		printf("fwpos: %d\n", results[i].fwpos);
+		printf("lwnum %d\n", results[i].lwnum);
+		printf("lwpos %d\n", results[i].lwpos);
+		printf("\n");
 	}
 }
 
 
-void parseLine(char *line)
+result parseLine(char *line)
 {
-	int fwn = firstWordNum(line);
-	int lwn = lastWordNum(line);
+	result res;
+	res.line = malloc(strlen(line) + 1);
+	strcpy(res.line, line);
 
-	printf("%s\n", line);
-	printf("%d\n", fwn);
-	printf("%d\n\n", lwn);
+	wordNum fwn = firstWordNum(line);
+	res.fwnum = fwn.num;
+	res.fwpos = fwn.pos;
+
+	wordNum lwn = lastWordNum(line);
+	res.lwnum = lwn.num;
+	res.lwpos = lwn.pos;
+
+	return res;
 }
 
 
-int firstWordNum(char *line)
+wordNum firstWordNum(char *line)
 {
 	char *ptr;
 	int x = 0;
 	int min = 255;
 	int lowest = 0;
+	wordNum wn;
 
 	for (int i = 0; i < 9; i++) {
 		ptr = strstr(line, wordNums[i]);
@@ -51,22 +90,25 @@ int firstWordNum(char *line)
 			if (x < min) {
 				min = x;
 				lowest = i;
-				// printf("%s\n", wordNums[x + 1]);
 			}
 		}
 	}
 
 	// index to wordNums is offset by 1 as 'one' is at index [0].
-	return lowest + 1;
+	wn.num = lowest + 1;
+	wn.pos = min;
+
+	return wn;
 }
 
 
-int lastWordNum(char *line)
+wordNum lastWordNum(char *line)
 {
 	char *ptr;
 	int x = 0;
 	int min = 255;
 	int lowest = 0;
+	wordNum wn;
 
 	// reverse line
 	char reversed[255];
@@ -82,7 +124,7 @@ int lastWordNum(char *line)
 		ptr = strstr(reversed, wordNumsRev[i]);
 
 		if (ptr != NULL) {
-			x = ptr - line;
+			x = ptr - reversed;
 			
 			if (x < min) {
 				min = x;
@@ -93,7 +135,18 @@ int lastWordNum(char *line)
 	}
 
 	// index to wordNums is offset by 1 as 'one' is at index [0].
-	return lowest + 1;
+	wn.num = lowest + 1;
+
+	// The position of the found string is in reverse so we have to know how
+	// long the string was to find out what position it started.
+	if (wordNumsRev[lowest] != NULL) {
+		int lenReversedNum = (int)strlen(wordNumsRev[lowest]);
+		wn.pos = strlen(line) - lenReversedNum - min;
+	} else {
+		wn.pos = 99;
+	}
+
+	return wn;
 }
 
 
