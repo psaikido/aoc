@@ -1,29 +1,47 @@
 /*
-https://adventofcode.com/2023/day/2
-Determine which games would have been possible if the bag had been loaded with
-only 12 red cubes, 13 green cubes, and 14 blue cubes. What is the sum of the IDs
-of those games?
+https://adventofcode.com/2023/day/3
+Add up numbers 'adjacent' to symbols.
 */
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+
+typedef struct {
+	int row;
+	int start;
+	int end;
+	int val;
+} item;
+
 
 FILE* getFile();
-void parseLine(int count, char *line);
+item* parseLine(int count, char *line);
 
 
 int main() 
 {
 	FILE *fp = getFile();
-	char line[1024];
+	char line[150];
+	char **schema = malloc(sizeof(char *) * 150);
 	int count = 0;
 	// int total = 0;
 
+	// Read input into local array because we'll need to query rows before
+	// and after the current row.
 	while (fgets(line, sizeof(line), fp)) {
-		parseLine(count, line);
-		count++;
+	  schema[count] = malloc(strlen(line));
+	  strcpy(schema[count], line);
+	  count++;
+	}
+
+	schema = realloc(schema, sizeof(char *) * count);
+
+	for (int i = 0; i < count; i++) {
+		// printf("%s\n", schema[i]);
+		parseLine(i, schema[i]);
 	}
 
 	// printf("total %d\n", total);
@@ -31,10 +49,44 @@ int main()
 }
 
 
-void parseLine(int rowCount, char *line)
+item* parseLine(int rowNum, char *line)
 { 
-	char* row = strdup(line);
-	printf("rowCount: %d, %s\n", rowCount, row);
+	item thing;
+	item *things = malloc(sizeof(thing) * 150);
+	int thingCntr = 0;
+	char tmpNum[4];
+	int tmpCntr = 0;
+
+	printf("rowNum: %d, %s", rowNum, line);
+
+	for (int i = 0; i < strlen(line); i++) {
+		if (isdigit(line[i])) {
+			tmpNum[tmpCntr] = line[i];
+			things[thingCntr].row = rowNum;
+
+			if (tmpCntr == 0) {
+				things[thingCntr].start = i;
+			}
+
+			tmpCntr++;
+		} else {
+			// Something is already in the temporary number so we are ending it and 
+			// getting ready for a new one.
+			if (tmpCntr > 0) {
+				tmpNum[tmpCntr] = '\0';
+				tmpCntr = 0;
+				things[thingCntr].end = i - 1;
+				things[thingCntr].val = (int)strtol(tmpNum, NULL, 10);
+				thingCntr++;
+			}
+		}
+	}
+
+	for (int j = 0; j < thingCntr; j++) {
+		printf("r: %d, s: %d, e: %d, v: %d\n", things[j].row, things[j].start, things[j].end, things[j].val);
+	}
+
+	return things;
 }
 
 
