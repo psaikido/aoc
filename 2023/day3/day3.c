@@ -16,10 +16,12 @@ typedef struct {
 	int val;
 } item;
 
+int itemCntr = 0;
+int symCntr = 0;
 
 FILE* getFile();
-item* parseForNumbers(int rowNum, char *line);
-item* parseForSymbols(int rowNum, char *line);
+item** parseForNumbers(int rowNum, char *line);
+item** parseForSymbols(int rowNum, char *line);
 bool isSymbol(char c);
 
 
@@ -29,6 +31,8 @@ int main()
 	char line[150];
 	char **schema = malloc(sizeof(char *) * 150);
 	int count = 0;
+	int numCount = 0;
+	int symCount = 0;
 	// int total = 0;
 
 	// Read input into local array because we'll need to query rows before
@@ -40,12 +44,41 @@ int main()
 	}
 
 	schema = realloc(schema, sizeof(char *) * count);
+	item **numbers = malloc(sizeof(item *) * count);
+	item **symbols = malloc(sizeof(item *) * count);
+	item **parsedRowNumbers = malloc(sizeof(item *) * 10);
+	item **parsedRowSymbols = malloc(sizeof(item *) * 10);
 
 	for (int i = 0; i < count; i++) {
-		// printf("%s\n", schema[i]);
-		parseForNumbers(i, schema[i]);
-		parseForSymbols(i, schema[i]);
+		printf("%s\n", schema[i]);
+		parsedRowNumbers = parseForNumbers(i, schema[i]);
+
+		for (int j = 0; j < itemCntr; j++) {
+			numbers = realloc(numbers, sizeof(item *) * (numCount + count));
+			numbers[numCount] = malloc(sizeof(item *) * numCount + 1);
+			numbers[numCount] = parsedRowNumbers[j];
+			numCount++;
+		}
+
+		parsedRowSymbols = parseForSymbols(i, schema[i]);
+
+		for (int k = 0; k < symCntr; k++) {
+			symbols = realloc(symbols, sizeof(item *) * (symCount + count));
+			symbols[symCount] = malloc(sizeof(item *) * symCount + 1);
+			symbols[symCount] = parsedRowSymbols[k];
+			symCount++;
+		}
+
 	}
+
+
+	// for (int i = 0; i < numCount; i++) {
+	// 	printf("r: %d, s: %d, e: %d, v: %d\n", numbers[i]->row, numbers[i]->start, numbers[i]->end, numbers[i]->val);
+	// }
+
+	// for (int l = 0; l < symCount; l++) {
+	// 	printf("r: %d, s: %d\n", symbols[l]->row, symbols[l]->start);
+	// }
 
 	// Test each number for an 'adjacent' symbol including diagonally.
 
@@ -54,51 +87,54 @@ int main()
 }
 
 
-item* parseForNumbers(int rowNum, char *line)
+item** parseForNumbers(int rowNum, char *line)
 { 
-	item thing;
-	item *things = malloc(sizeof(thing) * 150);
+	item **numbers = malloc(sizeof(item *));
 	int thingCntr = 0;
-	char tmpNum[4];
 	int tmpCntr = 0;
+	char tmpNum[4];
 
 	// printf("rowNum: %d, %s", rowNum, line);
 
 	for (int i = 0; i < strlen(line); i++) {
 		if (isdigit(line[i])) {
 			tmpNum[tmpCntr] = line[i];
-			things[thingCntr].row = rowNum;
 
 			if (tmpCntr == 0) {
-				things[thingCntr].start = i;
+				numbers[thingCntr] = malloc(sizeof(item *) * thingCntr + 1);
+				numbers[thingCntr]->row = rowNum;
+				numbers[thingCntr]->start = i;
 			}
 
 			tmpCntr++;
 		} else {
-			// Something is already in the temporary number so we are ending it and 
+			// Something is already in the temporary numbers so we are ending it and 
 			// getting ready for a new one.
 			if (tmpCntr > 0) {
 				tmpNum[tmpCntr] = '\0';
 				tmpCntr = 0;
-				things[thingCntr].end = i - 1;
-				things[thingCntr].val = (int)strtol(tmpNum, NULL, 10);
+
+				numbers[thingCntr]->end = i - 1;
+				numbers[thingCntr]->val = (int)strtol(tmpNum, NULL, 10);
 				thingCntr++;
+				numbers = realloc(numbers, sizeof(item *) * thingCntr);
 			}
 		}
 	}
 
 	// for (int j = 0; j < thingCntr; j++) {
-	// 	printf("r: %d, s: %d, e: %d, v: %d\n", things[j].row, things[j].start, things[j].end, things[j].val);
+	// 	printf("r: %d, s: %d, e: %d, v: %d\n", numbers[j]->row, numbers[j]->start, numbers[j]->end, numbers[j]->val);
 	// }
 
-	return things;
+	itemCntr = thingCntr;
+
+	return numbers;
 }
 
 
-item* parseForSymbols(int rowNum, char *line)
+item** parseForSymbols(int rowNum, char *line)
 { 
-	item thing;
-	item *things = malloc(sizeof(thing) * 150);
+	item **symbols = malloc(sizeof(item *));
 	int thingCntr = 0;
 
 	for (int i = 0; i < strlen(line); i++) {
@@ -107,17 +143,22 @@ item* parseForSymbols(int rowNum, char *line)
 			&& line[i] != '.'
 			&& line[i] != '\n'
 		) {
-			things[thingCntr].row = rowNum;
-			things[thingCntr].start = i;
+			symbols = realloc(symbols, sizeof(item *) * thingCntr + 1);
+			symbols[thingCntr] = malloc(sizeof(item *));
+
+			symbols[thingCntr]->row = rowNum;
+			symbols[thingCntr]->start = i;
 			thingCntr++;
 		}
 	}
 
 	// for (int j = 0; j < thingCntr; j++) {
-	// 	printf("r: %d, s: %d\n", things[j].row, things[j].start);
+	// 	printf("r: %d, s: %d\n", symbols[j]->row, symbols[j]->start);
 	// }
 
-	return things;
+	symCntr = thingCntr;
+
+	return symbols;
 }
 
 
