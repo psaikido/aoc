@@ -8,16 +8,25 @@
 
 typedef struct {
 	char *line;
+
 	int fwnum;
 	int fwpos;
+	int fdigit;
+	int fdigitpos;
+	int first;
+
 	int lwnum;
 	int lwpos;
+	int ldigit;
+	int ldigitpos;
+	int last;
+	int final;
 } result;
 
 typedef struct {
 	int num;
 	int pos;
-} wordNum;
+} numPos;
 
 
 const char *wordNums[] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
@@ -26,8 +35,10 @@ const char *wordNumsRev[] = {"eno", "owt", "eerht", "ruof", "evif", "xis", "neve
 
 FILE* getFile();
 result parseLine(char *line);
-wordNum firstWordNum(char *line);
-wordNum lastWordNum(char *line);
+numPos firstWordNum(char *line);
+numPos firstDigitNum(char *line);
+numPos lastWordNum(char *line);
+numPos lastDigitNum(char *line);
 
 
 int main() 
@@ -38,6 +49,7 @@ int main()
 	result results[1024];
 
 	int count = 0;
+	int total = 0;
 
 	while (fgets(line, sizeof(line), fp)) {
 		res = parseLine(line);
@@ -45,13 +57,24 @@ int main()
 	}
 
 	for (int i = 0; i < count; i++) {
-		printf("%s", results[i].line);
-		printf("fwnum: %d\n", results[i].fwnum);
-		printf("fwpos: %d\n", results[i].fwpos);
-		printf("lwnum %d\n", results[i].lwnum);
-		printf("lwpos %d\n", results[i].lwpos);
-		printf("\n");
+		// printf("%s", results[i].line);
+		// printf("fwnum: %d\n", results[i].fwnum);
+		// printf("fwpos: %d\n", results[i].fwpos);
+		// printf("fdigit %d\n", results[i].fdigit);
+		// printf("fdigitpos %d\n", results[i].fdigitpos);
+		// printf("lwnum %d\n", results[i].lwnum);
+		// printf("lwpos %d\n", results[i].lwpos);
+		// printf("ldigit %d\n", results[i].ldigit);
+		// printf("ldigitpos %d\n", results[i].ldigitpos);
+		// printf("first %d\n", results[i].first);
+		// printf("last %d\n", results[i].last);
+		// printf("final %d\n", results[i].final);
+		// printf("\n");
+		total += results[i].final;
 	}
+
+	printf("total = %d\n", total);
+	// Should be 55343.
 }
 
 
@@ -61,25 +84,50 @@ result parseLine(char *line)
 	res.line = malloc(strlen(line) + 1);
 	strcpy(res.line, line);
 
-	wordNum fwn = firstWordNum(line);
+	numPos fwn = firstWordNum(line);
 	res.fwnum = fwn.num;
 	res.fwpos = fwn.pos;
 
-	wordNum lwn = lastWordNum(line);
+	numPos fdigit = firstDigitNum(line);
+	res.fdigit = fdigit.num;
+	res.fdigitpos = fdigit.pos;
+
+	numPos lwn = lastWordNum(line);
 	res.lwnum = lwn.num;
 	res.lwpos = lwn.pos;
+
+	numPos ldigit = lastDigitNum(line);
+	res.ldigit = ldigit.num;
+	res.ldigitpos = ldigit.pos;
+
+	if (res.fwpos < res.fdigitpos) {
+		res.first = res.fwnum;
+	} else {
+		res.first = res.fdigit;
+	}
+
+	if (res.lwpos > res.ldigitpos) {
+		res.last = res.lwnum;
+	} else {
+		res.last = res.ldigit;
+	}
+
+	// Glob the two digits together into a single number.
+	char tmp[3] = "";
+	sprintf(tmp, "%d%d", res.first, res.last);
+	res.final = strtol(tmp, NULL, 10);
 
 	return res;
 }
 
 
-wordNum firstWordNum(char *line)
+numPos firstWordNum(char *line)
 {
 	char *ptr;
 	int x = 0;
 	int min = 255;
 	int lowest = 0;
-	wordNum wn;
+	numPos wn;
 
 	for (int i = 0; i < 9; i++) {
 		ptr = strstr(line, wordNums[i]);
@@ -102,13 +150,31 @@ wordNum firstWordNum(char *line)
 }
 
 
-wordNum lastWordNum(char *line)
+numPos firstDigitNum(char *line)
+{
+	numPos res;
+	res.num = 0;
+	res.pos = 99;
+
+	for (int i = 0; i < strlen(line); i++) {
+		if (isdigit(line[i])) {
+			res.num = line[i] - '0';
+			res.pos = i;
+			break;
+		}
+	}
+
+	return res;
+}
+
+
+numPos lastWordNum(char *line)
 {
 	char *ptr;
 	int x = 0;
 	int min = 255;
 	int lowest = 0;
-	wordNum wn;
+	numPos wn;
 
 	// reverse line
 	char reversed[255];
@@ -150,11 +216,29 @@ wordNum lastWordNum(char *line)
 }
 
 
+numPos lastDigitNum(char *line)
+{
+	numPos res;
+	res.num = 0;
+	res.pos = 99;
+
+	for (int i = strlen(line) - 1; i >= 0; i--) {
+		if (isdigit(line[i])) {
+			res.num = line[i] - '0';
+			res.pos = i;
+			break;
+		}
+	}
+
+	return res;
+}
+
+
 FILE* getFile()
 {
 	char filename[100];
 	strcpy (filename, getenv("HOME"));
-	strcat (filename, "/code/aoc/2023/day1/input1.txt");
+	strcat (filename, "/code/aoc/2023/day1/input.txt");
 
 	FILE *fp = NULL;
 	
