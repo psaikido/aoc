@@ -18,7 +18,9 @@ typedef struct {
 
 
 FILE* getFile();
-item* parseLine(int count, char *line);
+item* parseForNumbers(int rowNum, char *line);
+item* parseForSymbols(int rowNum, char *line);
+bool isSymbol(char c);
 
 
 int main() 
@@ -41,15 +43,18 @@ int main()
 
 	for (int i = 0; i < count; i++) {
 		// printf("%s\n", schema[i]);
-		parseLine(i, schema[i]);
+		parseForNumbers(i, schema[i]);
+		parseForSymbols(i, schema[i]);
 	}
+
+	// Test each number for an 'adjacent' symbol including diagonally.
 
 	// printf("total %d\n", total);
 	// Total should be .
 }
 
 
-item* parseLine(int rowNum, char *line)
+item* parseForNumbers(int rowNum, char *line)
 { 
 	item thing;
 	item *things = malloc(sizeof(thing) * 150);
@@ -57,7 +62,7 @@ item* parseLine(int rowNum, char *line)
 	char tmpNum[4];
 	int tmpCntr = 0;
 
-	printf("rowNum: %d, %s", rowNum, line);
+	// printf("rowNum: %d, %s", rowNum, line);
 
 	for (int i = 0; i < strlen(line); i++) {
 		if (isdigit(line[i])) {
@@ -82,9 +87,35 @@ item* parseLine(int rowNum, char *line)
 		}
 	}
 
-	for (int j = 0; j < thingCntr; j++) {
-		printf("r: %d, s: %d, e: %d, v: %d\n", things[j].row, things[j].start, things[j].end, things[j].val);
+	// for (int j = 0; j < thingCntr; j++) {
+	// 	printf("r: %d, s: %d, e: %d, v: %d\n", things[j].row, things[j].start, things[j].end, things[j].val);
+	// }
+
+	return things;
+}
+
+
+item* parseForSymbols(int rowNum, char *line)
+{ 
+	item thing;
+	item *things = malloc(sizeof(thing) * 150);
+	int thingCntr = 0;
+
+	for (int i = 0; i < strlen(line); i++) {
+		if (
+			!isdigit(line[i]) 
+			&& line[i] != '.'
+			&& line[i] != '\n'
+		) {
+			things[thingCntr].row = rowNum;
+			things[thingCntr].start = i;
+			thingCntr++;
+		}
 	}
+
+	// for (int j = 0; j < thingCntr; j++) {
+	// 	printf("r: %d, s: %d\n", things[j].row, things[j].start);
+	// }
 
 	return things;
 }
