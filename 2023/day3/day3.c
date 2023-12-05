@@ -13,6 +13,7 @@ typedef struct {
 	int row;
 	int start;
 	int end;
+	int pos;
 	int val;
 } item;
 
@@ -30,31 +31,31 @@ int main()
 	FILE *fp = getFile();
 	char line[150];
 	char **schema = malloc(sizeof(char *) * 150);
-	int count = 0;
+	int rowCount = 0;
 	int numCount = 0;
 	int symCount = 0;
-	// int total = 0;
+	int total = 0;
 
 	// Read input into local array because we'll need to query rows before
 	// and after the current row.
 	while (fgets(line, sizeof(line), fp)) {
-	  schema[count] = malloc(strlen(line));
-	  strcpy(schema[count], line);
-	  count++;
+	  schema[rowCount] = malloc(strlen(line));
+	  strcpy(schema[rowCount], line);
+	  rowCount++;
 	}
 
-	schema = realloc(schema, sizeof(char *) * count);
-	item **numbers = malloc(sizeof(item *) * count);
-	item **symbols = malloc(sizeof(item *) * count);
+	schema = realloc(schema, sizeof(char *) * rowCount);
+	item **numbers = malloc(sizeof(item *) * rowCount);
+	item **symbols = malloc(sizeof(item *) * rowCount);
 	item **parsedRowNumbers = malloc(sizeof(item *) * 10);
 	item **parsedRowSymbols = malloc(sizeof(item *) * 10);
 
-	for (int i = 0; i < count; i++) {
-		printf("%s\n", schema[i]);
+	for (int i = 0; i < rowCount; i++) {
+		// printf("r: %d, %s", i, schema[i]);
 		parsedRowNumbers = parseForNumbers(i, schema[i]);
 
 		for (int j = 0; j < itemCntr; j++) {
-			numbers = realloc(numbers, sizeof(item *) * (numCount + count));
+			numbers = realloc(numbers, sizeof(item *) * (numCount + rowCount));
 			numbers[numCount] = malloc(sizeof(item *) * numCount + 1);
 			numbers[numCount] = parsedRowNumbers[j];
 			numCount++;
@@ -63,7 +64,7 @@ int main()
 		parsedRowSymbols = parseForSymbols(i, schema[i]);
 
 		for (int k = 0; k < symCntr; k++) {
-			symbols = realloc(symbols, sizeof(item *) * (symCount + count));
+			symbols = realloc(symbols, sizeof(item *) * (symCount + rowCount));
 			symbols[symCount] = malloc(sizeof(item *) * symCount + 1);
 			symbols[symCount] = parsedRowSymbols[k];
 			symCount++;
@@ -71,25 +72,68 @@ int main()
 
 	}
 
+	// Test each number for an 'adjacent' symbol including diagonally.
+	for (int i = 0; i < numCount; i++) {
+		printf("r: %d, s: %d, e: %d, v: %d\n", numbers[i]->row, numbers[i]->start, numbers[i]->end, numbers[i]->val);
 
-	// for (int i = 0; i < numCount; i++) {
-	// 	printf("r: %d, s: %d, e: %d, v: %d\n", numbers[i]->row, numbers[i]->start, numbers[i]->end, numbers[i]->val);
-	// }
+		// Look for a symbol at either side on the same row.
+		for (int j = 0; j < symCount; j++) {
+			// Right row.
+			if (symbols[j]->row == numbers[i]->row) {
+				// Start.
+				if (symbols[j]->pos == numbers[i]->start - 1) {
+					// printf("found start r: %d, p: %d\n", symbols[j]->row, symbols[j]->pos);
+					total += numbers[i]->val;
+				}
+
+				// End.
+				if (symbols[j]->pos == numbers[i]->end + 1) {
+					// printf("found end r: %d, p: %d\n", symbols[j]->row, symbols[j]->pos);
+					total += numbers[i]->val;
+				}
+			}
+
+			// Search row above (not first row obvs).
+			if (numbers[i]->row > 0) {
+				if (symbols[j]->row == numbers[i]->row - 1) {
+					if (
+						symbols[j]->pos >= numbers[i]->start - 1
+				  	 && symbols[j]->pos <= numbers[i]->end + 1
+					) {
+						// printf("found above r: %d, p: %d\n", symbols[j]->row, symbols[j]->pos);
+						total += numbers[i]->val;
+					}
+				}
+			}
+
+			// Search row below (not last row obvs).
+			if (numbers[i]->row < rowCount) {
+				if (symbols[j]->row == numbers[i]->row + 1) {
+					if (
+						symbols[j]->pos >= numbers[i]->start - 1
+				  	 && symbols[j]->pos <= numbers[i]->end + 1
+					) {
+						// printf("found below r: %d, p: %d\n", symbols[j]->row, symbols[j]->pos);
+						total += numbers[i]->val;
+					}
+				}
+			}
+
+		}
+	}
 
 	// for (int l = 0; l < symCount; l++) {
-	// 	printf("r: %d, s: %d\n", symbols[l]->row, symbols[l]->start);
+	// 	printf("r: %d, p: %d\n", symbols[l]->row, symbols[l]->pos);
 	// }
 
-	// Test each number for an 'adjacent' symbol including diagonally.
-
-	// printf("total %d\n", total);
-	// Total should be .
+	printf("total %d\n", total);
+	// Total should be 543867.
 }
 
 
 item** parseForNumbers(int rowNum, char *line)
 { 
-	item **numbers = malloc(sizeof(item *));
+	item **numbers = malloc(sizeof(item *) * 1024);
 	int thingCntr = 0;
 	int tmpCntr = 0;
 	char tmpNum[4];
@@ -117,7 +161,7 @@ item** parseForNumbers(int rowNum, char *line)
 				numbers[thingCntr]->end = i - 1;
 				numbers[thingCntr]->val = (int)strtol(tmpNum, NULL, 10);
 				thingCntr++;
-				numbers = realloc(numbers, sizeof(item *) * thingCntr);
+				// numbers = realloc(numbers, sizeof(item *) * thingCntr);
 			}
 		}
 	}
@@ -134,7 +178,7 @@ item** parseForNumbers(int rowNum, char *line)
 
 item** parseForSymbols(int rowNum, char *line)
 { 
-	item **symbols = malloc(sizeof(item *));
+	item **symbols = malloc(sizeof(item *) * 1024);
 	int thingCntr = 0;
 
 	for (int i = 0; i < strlen(line); i++) {
@@ -143,11 +187,11 @@ item** parseForSymbols(int rowNum, char *line)
 			&& line[i] != '.'
 			&& line[i] != '\n'
 		) {
-			symbols = realloc(symbols, sizeof(item *) * thingCntr + 1);
+			// symbols = realloc(symbols, sizeof(item *) * thingCntr + 1);
 			symbols[thingCntr] = malloc(sizeof(item *));
 
 			symbols[thingCntr]->row = rowNum;
-			symbols[thingCntr]->start = i;
+			symbols[thingCntr]->pos = i;
 			thingCntr++;
 		}
 	}
@@ -166,7 +210,7 @@ FILE* getFile()
 {
 	char filename[100];
 	strcpy (filename, getenv("HOME"));
-	strcat (filename, "/code/aoc/2023/day3/input1.txt");
+	strcat (filename, "/code/aoc/2023/day3/input.txt");
 
 	FILE *fp = NULL;
 	
