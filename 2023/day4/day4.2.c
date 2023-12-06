@@ -30,7 +30,7 @@ int main()
 	int total = 0;
 	int cardCount = 1;
 
-	Card* cards = calloc(300, sizeof(Card));
+	Card* cards = calloc(MAXROWS, sizeof(Card));
 
 	while (fgets(line, sizeof(line), fp)) {
 		// printf("%s", line);
