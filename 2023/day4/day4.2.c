@@ -12,13 +12,16 @@
 typedef struct {
 	int cardNum;
 	int matches;
+	long count;
 } Card;
+
+long total = 0;
 
 
 FILE* getFile();
 int* parseWinners(char* line);
 int* parsePlays(char* line);
-void calc(Card*, int);
+long calc(Card*, int);
 
 
 int main() 
@@ -26,7 +29,6 @@ int main()
 	FILE *fp = getFile();
 	char line[1024];
 	int matches = 0;
-	int total = 0;
 	int cardCount = 1;
 
 	Card* cards = calloc(MAXROWS, sizeof(Card));
@@ -58,6 +60,7 @@ int main()
 
 				cards[cardCount].cardNum = cardCount;
 				cards[cardCount].matches = matches;
+				cards[cardCount].count = 1;
 				break;
 			}
 		}
@@ -65,40 +68,38 @@ int main()
 		cardCount++;
 	}
 
-	calc(cards, cardCount);
+	for (long i = 1; i <= cardCount; i++) {
+		calc(cards, i);
+	}
 
-	// printf("%d\n", total);
+	printf("%ld\n", total);
 	return 0;
 }
 
 
-void calc(Card* cards, int cardCount)
+long calc(Card* cards, int idx)
 {
-	long total[cardCount + 1][1024];
-	long count = 0;
+	if (cards[idx].cardNum != '\0') {
+		total++;
 
-	for (long i = 1; i <= cardCount; i++) {
+		printf("cd: %d, m: %d, c: %ld\n",
+			cards[idx].cardNum, cards[idx].matches, cards[idx].count);
 
-		if (cards[i].cardNum != '\0') {
-			total[i][0]++;
-			printf("i: %ld, cd: %d, m: %d, t: %ld\n", i, 
-				cards[i].cardNum, cards[i].matches, total[i][0]);
+		if (cards[idx].matches == 0) {
+			return 1;
+		}
 
-			count += total[i][0];
+		cards[idx].count++;
 
-			if (cards[i].matches > 0) {
-				for (int j = i + 1; j <= i + cards[i].matches; j++) {
-					total[cards[j].cardNum][0]++;
-					printf("  c: %d, m: %d, t: %ld\n", 
-						cards[j].cardNum, cards[j].matches, total[cards[j].cardNum][0]);
+		if (cards[idx].matches > 0) {
 
-					count += total[cards[j].cardNum][0];
-				}
+			for (int i = 0; i < cards[idx].matches; i++) {
+				calc(cards, idx + 1 + i);
 			}
 		}
 	}
 
-	printf("%ld\n", count);
+	return total;
 }
 
 
@@ -172,7 +173,7 @@ FILE* getFile()
 {
 	char filename[100];
 	strcpy (filename, getenv("HOME"));
-	strcat (filename, "/code/aoc/2023/day4/input1.txt");
+	strcat (filename, "/code/aoc/2023/day4/input.txt");
 
 	FILE *fp = NULL;
 	
