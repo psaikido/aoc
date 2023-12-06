@@ -1,4 +1,4 @@
-// https://adventofcode.com/2023/day/4
+// https://adventofcode.com/2023/day/4 part 2
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,12 +6,20 @@
 #include <ctype.h>
 #include <math.h>
 
-#define MAXROWS 1000
+
+#define MAXROWS 300
+
+typedef struct {
+	int cardNum;
+	int matches;
+} Card;
 
 
 FILE* getFile();
 int* parseWinners(char* line);
 int* parsePlays(char* line);
+void calc(Card*, int);
+
 
 int main() 
 {
@@ -20,9 +28,12 @@ int main()
 	int matches = 0;
 	int cardTotal = 0;
 	int total = 0;
+	int cardCount = 1;
+
+	Card* cards = calloc(300, sizeof(Card));
 
 	while (fgets(line, sizeof(line), fp)) {
-		printf("%s", line);
+		// printf("%s", line);
 		int* winners = parseWinners(line);
 		int* plays = parsePlays(line);
 
@@ -51,16 +62,47 @@ int main()
 					cardTotal = matches;
 				}
 
-				total += cardTotal;
-				printf("i: %d, m: %d, ct: %d, t: %d\n", i, matches, cardTotal, total);
+				// printf("c: %d, m: %d, ct: %d, t: %d\n", cardCount, matches, cardTotal, total);
+
+				cards[cardCount].cardNum = cardCount;
+				cards[cardCount].matches = matches;
 				break;
+			}
+		}
+
+		cardCount++;
+	}
+
+	calc(cards, cardCount);
+
+	// printf("%d\n", total);
+	return 0;
+}
+
+
+void calc(Card* cards, int cardCount)
+{
+	int total[cardCount + 1][1024];
+	int count = 0;
+
+	for (int i = 1; i <= cardCount; i++) {
+
+		if (cards[i].cardNum != '\0') {
+			total[i][0]++;
+			printf("i: %d, m: %d, t: %d\n", cards[i].cardNum, cards[i].matches, total[i][0]);
+			count += total[i][0];
+
+			if (cards[i].matches > 0) {
+				for (int j = i + 1; j <= i + cards[i].matches; j++) {
+					total[cards[j].cardNum][0]++;
+					printf("  c: %d, m: %d, t: %d\n", cards[j].cardNum, cards[j].matches, total[cards[j].cardNum][0]);
+					count += total[cards[j].cardNum][0];
+				}
 			}
 		}
 	}
 
-	printf("%d\n", total);
-	// 23441
-	return 0;
+	printf("%d\n", count - 1);
 }
 
 
