@@ -26,7 +26,6 @@ int main()
 	FILE *fp = getFile();
 	char line[1024];
 	int matches = 0;
-	int cardTotal = 0;
 	int total = 0;
 	int cardCount = 1;
 
@@ -38,7 +37,6 @@ int main()
 		int* plays = parsePlays(line);
 
 		matches = 0;
-		cardTotal = 0;
 
 		// printf("winners\n");
 		for (int i = 0; i < MAXROWS; i++) {
@@ -56,12 +54,6 @@ int main()
 					}
 				}
 			} else {
-				if (matches > 1) {
-					cardTotal = pow(2, (double)matches - 1);
-				} else {
-					cardTotal = matches;
-				}
-
 				// printf("c: %d, m: %d, ct: %d, t: %d\n", cardCount, matches, cardTotal, total);
 
 				cards[cardCount].cardNum = cardCount;
@@ -82,27 +74,31 @@ int main()
 
 void calc(Card* cards, int cardCount)
 {
-	int total[cardCount + 1][1024];
-	int count = 0;
+	long total[cardCount + 1][1024];
+	long count = 0;
 
-	for (int i = 1; i <= cardCount; i++) {
+	for (long i = 1; i <= cardCount; i++) {
 
 		if (cards[i].cardNum != '\0') {
 			total[i][0]++;
-			printf("i: %d, m: %d, t: %d\n", cards[i].cardNum, cards[i].matches, total[i][0]);
+			printf("i: %ld, cd: %d, m: %d, t: %ld\n", i, 
+				cards[i].cardNum, cards[i].matches, total[i][0]);
+
 			count += total[i][0];
 
 			if (cards[i].matches > 0) {
 				for (int j = i + 1; j <= i + cards[i].matches; j++) {
 					total[cards[j].cardNum][0]++;
-					printf("  c: %d, m: %d, t: %d\n", cards[j].cardNum, cards[j].matches, total[cards[j].cardNum][0]);
+					printf("  c: %d, m: %d, t: %ld\n", 
+						cards[j].cardNum, cards[j].matches, total[cards[j].cardNum][0]);
+
 					count += total[cards[j].cardNum][0];
 				}
 			}
 		}
 	}
 
-	printf("%d\n", count - 1);
+	printf("%ld\n", count);
 }
 
 
@@ -176,7 +172,7 @@ FILE* getFile()
 {
 	char filename[100];
 	strcpy (filename, getenv("HOME"));
-	strcat (filename, "/code/aoc/2023/day4/input.txt");
+	strcat (filename, "/code/aoc/2023/day4/input1.txt");
 
 	FILE *fp = NULL;
 	
