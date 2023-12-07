@@ -14,17 +14,18 @@ typedef struct {
 } Map;
 
 FILE* getFile();
-int* parseSeeds(char* line, int* seedCount);
+long* parseSeeds(char* line, long* seedCount);
 void loadMap(char* line, Map* map);
+long findDest(long trav, long dest, long source, long len);
 
 
 int main() 
 {
 	FILE *fp = getFile();
 	char line[1024];
-	int* seeds;
-	int seedCount = 0;
-	int lineCount = 0;
+	long* seeds;
+	long seedCount = 0;
+	long lineCount = 0;
 	
 	bool seedToSoil = false;
 	int seedToSoilStart = 0;
@@ -168,81 +169,109 @@ int main()
 		lineCount++;
 	}
 
-	printf("seedCount %d\n", seedCount);
-	for (int i = 1; i <= seedCount; i++) {
-		printf("s%d %d\n", i, seeds[i]);
-	}
+	// for (long i = 0; i < mapSeedToSoil.rangeCount; i++) {
+	// 	printf("mapSeedToSoil: %ld, %ld, %ld\n", 
+	// 		mapSeedToSoil.dest[i],
+	// 		mapSeedToSoil.source[i],
+	// 		mapSeedToSoil.len[i]
+	// 	);
+	// }
+	//
+	// for (long i = 0; i < mapSoilToFert.rangeCount; i++) {
+	// 	printf("mapSoilToFert: %ld, %ld, %ld\n", 
+	// 		mapSoilToFert.dest[i],
+	// 		mapSoilToFert.source[i],
+	// 		mapSoilToFert.len[i]
+	// 	);
+	// }
+	//
+	// for (long i = 0; i < mapFertToWater.rangeCount; i++) {
+	// 	printf("mapFertToWater: %ld, %ld, %ld\n", 
+	// 		mapFertToWater.dest[i],
+	// 		mapFertToWater.source[i],
+	// 		mapFertToWater.len[i]
+	// 	);
+	// }
+	//
+	// for (long i = 0; i < mapWaterToLight.rangeCount; i++) {
+	// 	printf("mapWaterToLight: %ld, %ld, %ld\n", 
+	// 		mapWaterToLight.dest[i],
+	// 		mapWaterToLight.source[i],
+	// 		mapWaterToLight.len[i]
+	// 	);
+	// }
+	//
+	// for (long i = 0; i < mapLightToTemp.rangeCount; i++) {
+	// 	printf("mapLightToTemp: %ld, %ld, %ld\n", 
+	// 		mapLightToTemp.dest[i],
+	// 		mapLightToTemp.source[i],
+	// 		mapLightToTemp.len[i]
+	// 	);
+	// }
+	//
+	// for (long i = 0; i < mapTempToHum.rangeCount; i++) {
+	// 	printf("mapTempToHum: %ld, %ld, %ld\n", 
+	// 		mapTempToHum.dest[i],
+	// 		mapTempToHum.source[i],
+	// 		mapTempToHum.len[i]
+	// 	);
+	// }
+	//
+	// for (long i = 0; i < mapHumToLoc.rangeCount; i++) {
+	// 	printf("mapHumToLoc: %ld, %ld, %ld\n", 
+	// 		mapHumToLoc.dest[i],
+	// 		mapHumToLoc.source[i],
+	// 		mapHumToLoc.len[i]
+	// 	);
+	// }
 
-	for (long i = 0; i < mapSeedToSoil.rangeCount; i++) {
-		printf("mapSeedToSoil: %ld, %ld, %ld\n", 
-			mapSeedToSoil.dest[i],
-			mapSeedToSoil.source[i],
-			mapSeedToSoil.len[i]
-		);
-	}
+	// find corresponding soil number for a given seed
+	// is seed num >= any source range num and within the range?
+	// if yes then get the diff and add that to the source num
+	// if no then soil num is seed num
+	//
+	// Seed 79, soil 81, fertilizer 81, water 81, light 74, temperature 78, humidity 78, location 82.
+	// Seed 14, soil 14, fertilizer 53, water 49, light 42, temperature 42, humidity 43, location 43.
+	// Seed 55, soil 57, fertilizer 57, water 53, light 46, temperature 82, humidity 82, location 86.
+	// Seed 13, soil 13, fertilizer 52, water 41, light 34, temperature 34, humidity 35, location 35.
 
-	for (long i = 0; i < mapSoilToFert.rangeCount; i++) {
-		printf("mapSoilToFert: %ld, %ld, %ld\n", 
-			mapSoilToFert.dest[i],
-			mapSoilToFert.source[i],
-			mapSoilToFert.len[i]
-		);
-	}
+	// printf("seedCount %ld\n", seedCount);
+	long soil = '\0';
+	for (long i = 1; i <= seedCount; i++) {
+		printf("s%ld %ld\n", i, seeds[i]);
 
-	for (long i = 0; i < mapFertToWater.rangeCount; i++) {
-		printf("mapFertToWater: %ld, %ld, %ld\n", 
-			mapFertToWater.dest[i],
-			mapFertToWater.source[i],
-			mapFertToWater.len[i]
-		);
-	}
+		for (long j = 0; j < mapSeedToSoil.rangeCount; j++) {
+			soil = findDest(
+				seeds[i], 
+				mapSeedToSoil.dest[j],
+				mapSeedToSoil.source[j],
+				mapSeedToSoil.len[j]
+			);
+		}
 
-	for (long i = 0; i < mapWaterToLight.rangeCount; i++) {
-		printf("mapWaterToLight: %ld, %ld, %ld\n", 
-			mapWaterToLight.dest[i],
-			mapWaterToLight.source[i],
-			mapWaterToLight.len[i]
-		);
-	}
+		if (soil == '\0') {
+			soil = seeds[i];
+		}
 
-	for (long i = 0; i < mapLightToTemp.rangeCount; i++) {
-		printf("mapLightToTemp: %ld, %ld, %ld\n", 
-			mapLightToTemp.dest[i],
-			mapLightToTemp.source[i],
-			mapLightToTemp.len[i]
-		);
-	}
-
-	for (long i = 0; i < mapTempToHum.rangeCount; i++) {
-		printf("mapTempToHum: %ld, %ld, %ld\n", 
-			mapTempToHum.dest[i],
-			mapTempToHum.source[i],
-			mapTempToHum.len[i]
-		);
-	}
-
-	for (long i = 0; i < mapHumToLoc.rangeCount; i++) {
-		printf("mapHumToLoc: %ld, %ld, %ld\n", 
-			mapHumToLoc.dest[i],
-			mapHumToLoc.source[i],
-			mapHumToLoc.len[i]
-		);
+		if (soil != '\0') {
+			printf("soil: %ld\n", soil);
+		}
 	}
 
 	return 0;
 }
 
 
-int* parseSeeds(char* line, int* seedCount)
+long* parseSeeds(char* line, long* seedCount)
 {
 	char* token;
-	int count = 0;
-	int* seeds = calloc(1024, sizeof(int));
-	int* ptr;
+	long count = 0;
+	long* seeds = calloc(1024, sizeof(long));
+	long* ptr;
 
 	while((token = strtok_r(line, " \n", &line)) != NULL) {
 		if (count > 0) {
-			seeds[count] = (int)strtol(token, NULL, 10);
+			seeds[count] = strtol(token, NULL, 10);
 		}
 
 		count++;
@@ -251,6 +280,18 @@ int* parseSeeds(char* line, int* seedCount)
 	*seedCount = count - 1;
 	ptr = seeds;
 	return ptr;
+}
+
+
+long findDest(long trav, long dest, long source, long len)
+{
+	// printf("%ld %ld %ld %ld\n", trav, dest, source, len);
+	if (trav >= source 
+	 && trav <= (source + len)) {
+		return dest + (trav - source);
+	} else {
+		return '\0';
+	}
 }
 
 
