@@ -4,6 +4,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 FILE* getFile();
 int* parseSeeds(char* line, int* seedCount);
@@ -16,15 +17,29 @@ int main()
 	int* seeds;
 	int seedCount = 0;
 	int lineCount = 0;
+	
+	bool seedToSoil = false;
+	int seedToSoilStart = 0;
 
 	while (fgets(line, sizeof(line), fp)) {
-		printf("%s", line);
-
-		lineCount++;
-
-		if (lineCount == 1) {
+		if (lineCount == 0) {
 			seeds = parseSeeds(line, &seedCount);
 		}
+
+		if (strcmp(line, "seed-to-soil map:\n") == 0) {
+			seedToSoilStart = lineCount + 1;
+			seedToSoil = true;
+		}
+
+		if (seedToSoil == true && lineCount >= seedToSoilStart) {
+			if (strcmp(line, "\n") == 0) {
+				seedToSoil = false;
+			} else {
+				printf("%d: %s", lineCount, line);
+			}
+		}
+
+		lineCount++;
 	}
 
 	printf("seedCount %d\n", seedCount);
