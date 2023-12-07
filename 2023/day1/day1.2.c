@@ -57,19 +57,19 @@ int main()
 	}
 
 	for (int i = 0; i < count; i++) {
-		// printf("%s", results[i].line);
-		// printf("fwnum: %d\n", results[i].fwnum);
-		// printf("fwpos: %d\n", results[i].fwpos);
-		// printf("fdigit %d\n", results[i].fdigit);
-		// printf("fdigitpos %d\n", results[i].fdigitpos);
-		// printf("lwnum %d\n", results[i].lwnum);
-		// printf("lwpos %d\n", results[i].lwpos);
-		// printf("ldigit %d\n", results[i].ldigit);
-		// printf("ldigitpos %d\n", results[i].ldigitpos);
-		// printf("first %d\n", results[i].first);
-		// printf("last %d\n", results[i].last);
-		// printf("final %d\n", results[i].final);
-		// printf("\n");
+		printf("%s", results[i].line);
+		printf("fwnum: %d\n", results[i].fwnum);
+		printf("fwpos: %d\n", results[i].fwpos);
+		printf("fdigit %d\n", results[i].fdigit);
+		printf("fdigitpos %d\n", results[i].fdigitpos);
+		printf("lwnum %d\n", results[i].lwnum);
+		printf("lwpos %d\n", results[i].lwpos);
+		printf("ldigit %d\n", results[i].ldigit);
+		printf("ldigitpos %d\n", results[i].ldigitpos);
+		printf("first %d\n", results[i].first);
+		printf("last %d\n", results[i].last);
+		printf("final %d\n", results[i].final);
+		printf("\n");
 		total += results[i].final;
 	}
 
@@ -156,7 +156,7 @@ numPos firstDigitNum(char *line)
 	res.num = 0;
 	res.pos = 99;
 
-	for (int i = 0; i < strlen(line); i++) {
+	for (int i = 0; i < (int)strlen(line); i++) {
 		if (isdigit(line[i])) {
 			res.num = line[i] - '0';
 			res.pos = i;
@@ -220,7 +220,7 @@ numPos lastDigitNum(char *line)
 {
 	numPos res;
 	res.num = 0;
-	res.pos = 99;
+	res.pos = 0;
 
 	for (int i = strlen(line) - 1; i >= 0; i--) {
 		if (isdigit(line[i])) {
@@ -238,7 +238,8 @@ FILE* getFile()
 {
 	char filename[100];
 	strcpy (filename, getenv("HOME"));
-	strcat (filename, "/code/aoc/2023/day1/input.txt");
+	strcat (filename, "/code/aoc/2023/day1/example1.2.txt");
+	// strcat (filename, "/code/aoc/2023/day1/input.txt");
 
 	FILE *fp = NULL;
 	

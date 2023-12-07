@@ -50,7 +50,8 @@ FILE* getFile()
 {
 	char filename[100];
 	strcpy (filename, getenv("HOME"));
-	strcat (filename, "/code/aoc/2023/day1/input.txt");
+	strcat (filename, "/code/aoc/2023/day1/example1.txt");
+	// strcat (filename, "/code/aoc/2023/day1/input.txt");
 
 	FILE *fp = NULL;
 	
