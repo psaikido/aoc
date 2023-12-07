@@ -140,7 +140,7 @@ item** parseForNumbers(int rowNum, char *line)
 
 	// printf("rowNum: %d, %s", rowNum, line);
 
-	for (int i = 0; i < strlen(line); i++) {
+	for (int i = 0; i < (int)strlen(line); i++) {
 		if (isdigit(line[i])) {
 			tmpNum[tmpCntr] = line[i];
 
@@ -181,7 +181,7 @@ item** parseForSymbols(int rowNum, char *line)
 	item **symbols = malloc(sizeof(item *) * 1024);
 	int thingCntr = 0;
 
-	for (int i = 0; i < strlen(line); i++) {
+	for (int i = 0; i < (int)strlen(line); i++) {
 		if (
 			!isdigit(line[i]) 
 			&& line[i] != '.'
@@ -210,7 +210,8 @@ FILE* getFile()
 {
 	char filename[100];
 	strcpy (filename, getenv("HOME"));
-	strcat (filename, "/code/aoc/2023/day3/input.txt");
+	strcat (filename, "/code/aoc/2023/day3/example.txt");
+	// strcat (filename, "/code/aoc/2023/day3/input.txt");
 
 	FILE *fp = NULL;
 	
