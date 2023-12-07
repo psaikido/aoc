@@ -76,7 +76,8 @@ FILE* getFile()
 {
 	char filename[100];
 	strcpy (filename, getenv("HOME"));
-	strcat (filename, "/code/aoc/2023/day5/input1.txt");
+	strcat (filename, "/code/aoc/2023/day5/example.txt");
+	// strcat (filename, "/code/aoc/2023/day5/input.txt");
 
 	FILE *fp = NULL;
 	
