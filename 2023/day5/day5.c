@@ -6,8 +6,20 @@
 #include <ctype.h>
 #include <stdbool.h>
 
+typedef struct {
+	long dest;
+	long source;
+	long len;
+} Range;
+
+typedef struct {
+	Range* range;
+	int rangeCount;
+} Map;
+
 FILE* getFile();
 int* parseSeeds(char* line, int* seedCount);
+void loadMap(char* line, Map* map);
 
 
 int main() 
@@ -20,6 +32,9 @@ int main()
 	
 	bool seedToSoil = false;
 	int seedToSoilStart = 0;
+	Map mapSeedToSoil;
+	mapSeedToSoil.rangeCount = 0;
+
 
 	while (fgets(line, sizeof(line), fp)) {
 		if (lineCount == 0) {
@@ -36,15 +51,24 @@ int main()
 				seedToSoil = false;
 			} else {
 				printf("%d: %s", lineCount, line);
+				loadMap(line, &mapSeedToSoil);
 			}
 		}
 
 		lineCount++;
 	}
 
-	printf("seedCount %d\n", seedCount);
-	for (int i = 1; i <= seedCount; i++) {
-		printf("s%d %d\n", i, seeds[i]);
+	// printf("seedCount %d\n", seedCount);
+	// for (int i = 1; i <= seedCount; i++) {
+	// 	printf("s%d %d\n", i, seeds[i]);
+	// }
+
+	for (long i = 0; i < mapSeedToSoil.rangeCount; i++) {
+		printf("mapSeedToSoil: %ld, %ld, %ld\n", 
+			mapSeedToSoil.range[i].dest,
+			mapSeedToSoil.range[i].source,
+			mapSeedToSoil.range[i].len
+		);
 	}
 
 	return 0;
@@ -69,6 +93,40 @@ int* parseSeeds(char* line, int* seedCount)
 	*seedCount = count - 1;
 	ptr = seeds;
 	return ptr;
+}
+
+
+void loadMap(char* line, Map* map)
+{
+	char* token;
+	Range* range = calloc(1, sizeof(Range));
+	int count = 0;
+
+	while((token = strtok_r(line, " \n", &line)) != NULL) {
+		if (count == 0) {
+			range->dest = strtol(token, NULL, 10);
+		}
+
+		if (count == 1) {
+			range->source = strtol(token, NULL, 10);
+		}
+
+		if (count == 2) {
+			range->len = strtol(token, NULL, 10);
+		}
+
+		count++;
+	}
+
+	map->range[map->rangeCount] = *range;
+	map->rangeCount++;
+
+	// int idx = map->rangeCount - 1;
+	// printf("map: %ld, %ld, %ld, %d\n", 
+	// 	map->range[idx].dest, 
+	// 	map->range[idx].source, 
+	// 	map->range[idx].len, 
+	// 	map->rangeCount);
 }
 
 
