@@ -7,14 +7,10 @@
 #include <stdbool.h>
 
 typedef struct {
-	long dest;
-	long source;
-	long len;
-} Range;
-
-typedef struct {
-	Range* range;
-	int rangeCount;
+	long dest[1024];
+	long source[1024];
+	long len[1024];
+	long rangeCount;
 } Map;
 
 FILE* getFile();
@@ -35,6 +31,36 @@ int main()
 	Map mapSeedToSoil;
 	mapSeedToSoil.rangeCount = 0;
 
+	bool soilToFert = false;
+	int soilToFertStart = 0;
+	Map mapSoilToFert;
+	mapSoilToFert.rangeCount = 0;
+
+	bool fertToWater = false;
+	int fertToWaterStart = 0;
+	Map mapFertToWater;
+	mapFertToWater.rangeCount = 0;
+
+	bool waterToLight = false;
+	int waterToLightStart = 0;
+	Map mapWaterToLight;
+	mapWaterToLight.rangeCount = 0;
+
+	bool lightToTemp = false;
+	int lightToTempStart = 0;
+	Map mapLightToTemp;
+	mapLightToTemp.rangeCount = 0;
+
+	bool tempToHum = false;
+	int tempToHumStart = 0;
+	Map mapTempToHum;
+	mapTempToHum.rangeCount = 0;
+
+	bool humToLoc = false;
+	int humToLocStart = 0;
+	Map mapHumToLoc;
+	mapHumToLoc.rangeCount = 0;
+
 
 	while (fgets(line, sizeof(line), fp)) {
 		if (lineCount == 0) {
@@ -50,24 +76,156 @@ int main()
 			if (strcmp(line, "\n") == 0) {
 				seedToSoil = false;
 			} else {
-				printf("%d: %s", lineCount, line);
+				// printf("ms2s %d: %s", lineCount, line);
 				loadMap(line, &mapSeedToSoil);
+			}
+		}
+
+		if (strcmp(line, "soil-to-fertilizer map:\n") == 0) {
+			soilToFertStart = lineCount + 1;
+			soilToFert = true;
+		}
+
+		if (soilToFert == true && lineCount >= soilToFertStart) {
+			if (strcmp(line, "\n") == 0) {
+				soilToFert = false;
+			} else {
+				// printf("mstf %d: %s", lineCount, line);
+				loadMap(line, &mapSoilToFert);
+			}
+		}
+
+		if (strcmp(line, "fertilizer-to-water map:\n") == 0) {
+			fertToWaterStart = lineCount + 1;
+			fertToWater = true;
+		}
+
+		if (fertToWater == true && lineCount >= fertToWaterStart) {
+			if (strcmp(line, "\n") == 0) {
+				fertToWater = false;
+			} else {
+				// printf("mstf %d: %s", lineCount, line);
+				loadMap(line, &mapFertToWater);
+			}
+		}
+
+		if (strcmp(line, "water-to-light map:\n") == 0) {
+			waterToLightStart = lineCount + 1;
+			waterToLight = true;
+		}
+
+		if (waterToLight == true && lineCount >= waterToLightStart) {
+			if (strcmp(line, "\n") == 0) {
+				waterToLight = false;
+			} else {
+				// printf("mstf %d: %s", lineCount, line);
+				loadMap(line, &mapWaterToLight);
+			}
+		}
+
+		if (strcmp(line, "light-to-temperature map:\n") == 0) {
+			lightToTempStart = lineCount + 1;
+			lightToTemp = true;
+		}
+
+		if (lightToTemp == true && lineCount >= lightToTempStart) {
+			if (strcmp(line, "\n") == 0) {
+				lightToTemp = false;
+			} else {
+				// printf("mstf %d: %s", lineCount, line);
+				loadMap(line, &mapLightToTemp);
+			}
+		}
+
+		if (strcmp(line, "temperature-to-humidity map:\n") == 0) {
+			tempToHumStart = lineCount + 1;
+			tempToHum = true;
+		}
+
+		if (tempToHum == true && lineCount >= tempToHumStart) {
+			if (strcmp(line, "\n") == 0) {
+				tempToHum = false;
+			} else {
+				// printf("mstf %d: %s", lineCount, line);
+				loadMap(line, &mapTempToHum);
+			}
+		}
+
+		if (strcmp(line, "humidity-to-location map:\n") == 0) {
+			humToLocStart = lineCount + 1;
+			humToLoc = true;
+		}
+
+		if (humToLoc == true && lineCount >= humToLocStart) {
+			if (strcmp(line, "\n") == 0) {
+				humToLoc = false;
+			} else {
+				// printf("mstf %d: %s", lineCount, line);
+				loadMap(line, &mapHumToLoc);
 			}
 		}
 
 		lineCount++;
 	}
 
-	// printf("seedCount %d\n", seedCount);
-	// for (int i = 1; i <= seedCount; i++) {
-	// 	printf("s%d %d\n", i, seeds[i]);
-	// }
+	printf("seedCount %d\n", seedCount);
+	for (int i = 1; i <= seedCount; i++) {
+		printf("s%d %d\n", i, seeds[i]);
+	}
 
 	for (long i = 0; i < mapSeedToSoil.rangeCount; i++) {
 		printf("mapSeedToSoil: %ld, %ld, %ld\n", 
-			mapSeedToSoil.range[i].dest,
-			mapSeedToSoil.range[i].source,
-			mapSeedToSoil.range[i].len
+			mapSeedToSoil.dest[i],
+			mapSeedToSoil.source[i],
+			mapSeedToSoil.len[i]
+		);
+	}
+
+	for (long i = 0; i < mapSoilToFert.rangeCount; i++) {
+		printf("mapSoilToFert: %ld, %ld, %ld\n", 
+			mapSoilToFert.dest[i],
+			mapSoilToFert.source[i],
+			mapSoilToFert.len[i]
+		);
+	}
+
+	for (long i = 0; i < mapFertToWater.rangeCount; i++) {
+		printf("mapFertToWater: %ld, %ld, %ld\n", 
+			mapFertToWater.dest[i],
+			mapFertToWater.source[i],
+			mapFertToWater.len[i]
+		);
+	}
+
+	for (long i = 0; i < mapWaterToLight.rangeCount; i++) {
+		printf("mapWaterToLight: %ld, %ld, %ld\n", 
+			mapWaterToLight.dest[i],
+			mapWaterToLight.source[i],
+			mapWaterToLight.len[i]
+		);
+	}
+
+	for (long i = 0; i < mapLightToTemp.rangeCount; i++) {
+		printf("mapLightToTemp: %ld, %ld, %ld\n", 
+			mapLightToTemp.dest[i],
+			mapLightToTemp.source[i],
+			mapLightToTemp.len[i]
+		);
+	}
+
+	for (long i = 0; i < mapTempToHum.rangeCount; i++) {
+		printf("mapTempToHum: %ld, %ld, %ld\n", 
+			mapTempToHum.dest[i],
+			mapTempToHum.source[i],
+			mapTempToHum.len[i]
+		);
+	}
+
+	for (long i = 0; i < mapHumToLoc.rangeCount; i++) {
+		printf("mapHumToLoc: %ld, %ld, %ld\n", 
+			mapHumToLoc.dest[i],
+			mapHumToLoc.source[i],
+			mapHumToLoc.len[i]
 		);
 	}
 
@@ -99,34 +257,33 @@ int* parseSeeds(char* line, int* seedCount)
 void loadMap(char* line, Map* map)
 {
 	char* token;
-	Range* range = calloc(1, sizeof(Range));
-	int count = 0;
+	int lineCount = 0;
+	long idx = map->rangeCount;
 
 	while((token = strtok_r(line, " \n", &line)) != NULL) {
-		if (count == 0) {
-			range->dest = strtol(token, NULL, 10);
+		if (lineCount == 0) {
+			map->dest[idx] = strtol(token, NULL, 10);
 		}
 
-		if (count == 1) {
-			range->source = strtol(token, NULL, 10);
+		if (lineCount == 1) {
+			map->source[idx] = strtol(token, NULL, 10);
 		}
 
-		if (count == 2) {
-			range->len = strtol(token, NULL, 10);
+		if (lineCount == 2) {
+			map->len[idx] = strtol(token, NULL, 10);
 		}
 
-		count++;
+		lineCount++;
 	}
 
-	map->range[map->rangeCount] = *range;
-	map->rangeCount++;
+	// printf("map: %ld, %ld, %ld, %ld\n", 
+	// 	map->dest[idx], 
+	// 	map->source[idx], 
+	// 	map->len[idx], 
+	// 	map->rangeCount
+	// );
 
-	// int idx = map->rangeCount - 1;
-	// printf("map: %ld, %ld, %ld, %d\n", 
-	// 	map->range[idx].dest, 
-	// 	map->range[idx].source, 
-	// 	map->range[idx].len, 
-	// 	map->rangeCount);
+	map->rangeCount++;
 }
 
 
