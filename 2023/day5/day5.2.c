@@ -132,6 +132,7 @@ int main()
 	// 	);
 	// }
 
+	long seed = '\0';
 	long soil = '\0';
 	long fert = '\0';
 	long water = '\0';
@@ -140,9 +141,6 @@ int main()
 	long hum = '\0';
 	long loc = '\0';
 	long totals[seedCount];
-	
-	// Seed 79, soil 81, fertilizer 81, water 81, light 74, temperature 78, humidity 78, location 82.
-
 	long seedPairCount = 0;
 
 	for (long i = 1; i <= seedCount; i++) {
@@ -161,13 +159,13 @@ int main()
 	// 84, light 77, temperature 45, humidity 46, and location 46. So, the
 	// lowest location number is 46.
 
-	long s;
-	long e;
-	for (long i = 0; i < seedPairCount; i++) {
-		s = seedPairs[i].start;
-		e = s + seedPairs[i].range - 1;
-		printf("range start: %ld, end %ld\n", s, e);
-	}
+	// long s;
+	// long e;
+	// for (long i = 0; i < seedPairCount; i++) {
+	// 	s = seedPairs[i].start;
+	// 	e = s + seedPairs[i].range - 1;
+	// 	printf("range start: %ld, end %ld\n", s, e);
+	// }
 
 	for (long i = 0; i < 10000000000; i++) {
 		// printf("i: %ld\n", i);
@@ -190,18 +188,19 @@ int main()
 		soil = getSourceNum(&mapSoilToFert, fert);
 		// printf("soil: %ld\n", soil);
 
-		long s = getSourceNum(&mapSeedToSoil, soil);
+		seed = getSourceNum(&mapSeedToSoil, soil);
 
 		for (long j = 0; j < seedPairCount; j++) {
-			if (s >= seedPairs[j].start
-			&& s <= seedPairs[j].start + seedPairs[j].range) {
+			if (seed >= seedPairs[j].start
+			&& seed <= seedPairs[j].start + seedPairs[j].range - 1) {
 				printf("hum: %ld\n", hum);
 				printf("temp: %ld\n", temp);
 				printf("light: %ld\n", light);
 				printf("water: %ld\n", water);
 				printf("fert: %ld\n", fert);
 				printf("soil: %ld\n", soil);
-				printf("lowest seed: %ld\n", s);
+				printf("seed: %ld\n", seed);
+				printf("lowest loc: %ld\n", i);
 				exit(0);
 			}
 		}
@@ -209,19 +208,9 @@ int main()
 		// printf("\n");
 	}
 
-
-	// long winner = 1000000000;
-	//
-	// for (long i = 1; i <= seedCount; i++) {
-	// 	if (totals[i] < winner) {
-	// 		winner = totals[i];
-	// 	}
-	// }
-	//
-	// printf("the winner is %ld\n", winner);
-
 	return 0;
 }
+
 
 long getSourceNum(Map* map, long idx)
 {
@@ -237,6 +226,7 @@ long getSourceNum(Map* map, long idx)
 
 	return idx;
 }
+
 
 FILE* getFile()
 {
@@ -340,6 +330,7 @@ void loadMap(char* line, Map* map)
 
 	map->rangeCount++;
 }
+
 
 int comparator (const void* a, const void* b)
 {
