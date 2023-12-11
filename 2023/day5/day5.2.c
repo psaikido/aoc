@@ -10,6 +10,7 @@ typedef struct {
 	long dest[1024];
 	long source[1024];
 	long len[1024];
+	long delta[1024];
 	long rangeCount;
 } Map;
 
@@ -22,7 +23,8 @@ FILE* getFile();
 long* parseSeeds(char* line, long* seedCount);
 void parseForMap(FILE** fp, Map* map, char* target);
 void loadMap(char* line, Map* map);
-long findDest(long trav, long dest, long source, long len);
+long getSourceNum(Map* map, long i);
+int comparator (const void* a, const void* b);
 
 
 int main() 
@@ -130,7 +132,6 @@ int main()
 	// 	);
 	// }
 
-	printf("seedCount %ld\n", seedCount);
 	long soil = '\0';
 	long fert = '\0';
 	long water = '\0';
@@ -145,7 +146,6 @@ int main()
 	long seedPairCount = 0;
 
 	for (long i = 1; i <= seedCount; i++) {
-		printf("seed %ld %ld\n", i, seeds[i]);
 		if (i % 2 == 0) {
 			seedPairs[seedPairCount].range = seeds[i];
 			seedPairCount++;
@@ -154,30 +154,96 @@ int main()
 		}
 	}
 
+	qsort(seedPairs, seedPairCount, sizeof(SeedPair), comparator);
+
+	// the lowest location number can be obtained from
+	// seed number 82, which corresponds to soil 84, fertilizer 84, water
+	// 84, light 77, temperature 45, humidity 46, and location 46. So, the
+	// lowest location number is 46.
+
+	long s;
+	long e;
 	for (long i = 0; i < seedPairCount; i++) {
-		printf("s, r: %ld %ld\n", seedPairs[i].start, seedPairs[i].range);
+		s = seedPairs[i].start;
+		e = s + seedPairs[i].range - 1;
+		printf("range start: %ld, end %ld\n", s, e);
 	}
-	
-	long winner = 1000000000;
 
-	for (long i = 1; i <= seedCount; i++) {
-		if (totals[i] < winner) {
-			winner = totals[i];
+	for (long i = 0; i < 10000000000; i++) {
+		// printf("i: %ld\n", i);
+
+		hum = getSourceNum(&mapHumToLoc, i);
+		// printf("hum: %ld\n", hum);
+
+		temp = getSourceNum(&mapTempToHum, hum);
+		// printf("temp: %ld\n", temp);
+
+		light = getSourceNum(&mapLightToTemp, temp);
+		// printf("light: %ld\n", light);
+
+		water = getSourceNum(&mapWaterToLight, light);
+		// printf("water: %ld\n", water);
+
+		fert = getSourceNum(&mapFertToWater, water);
+		// printf("fert: %ld\n", fert);
+
+		soil = getSourceNum(&mapSoilToFert, fert);
+		// printf("soil: %ld\n", soil);
+
+		long s = getSourceNum(&mapSeedToSoil, soil);
+
+		for (long j = 0; j < seedPairCount; j++) {
+			if (s >= seedPairs[j].start
+			&& s <= seedPairs[j].start + seedPairs[j].range) {
+				printf("hum: %ld\n", hum);
+				printf("temp: %ld\n", temp);
+				printf("light: %ld\n", light);
+				printf("water: %ld\n", water);
+				printf("fert: %ld\n", fert);
+				printf("soil: %ld\n", soil);
+				printf("lowest seed: %ld\n", s);
+				exit(0);
+			}
 		}
+
+		// printf("\n");
 	}
 
-	printf("the winner is %ld\n", winner);
+
+	// long winner = 1000000000;
+	//
+	// for (long i = 1; i <= seedCount; i++) {
+	// 	if (totals[i] < winner) {
+	// 		winner = totals[i];
+	// 	}
+	// }
+	//
+	// printf("the winner is %ld\n", winner);
 
 	return 0;
 }
 
+long getSourceNum(Map* map, long idx)
+{
+	for (long i = 0; i < map->rangeCount; i++) {
+		long delta = map->source[i] - map->dest[i];
+
+		if (idx >= map->dest[i] 
+		&& idx <= (map->dest[i] + map->len[i])) {
+			map->delta[i] = delta;
+			return idx + delta;
+		}
+	}
+
+	return idx;
+}
 
 FILE* getFile()
 {
 	char filename[100];
 	strcpy (filename, getenv("HOME"));
-	strcat (filename, "/code/aoc/2023/day5/example.txt");
-	// strcat (filename, "/code/aoc/2023/day5/input.txt");
+	// strcat (filename, "/code/aoc/2023/day5/example.txt");
+	strcat (filename, "/code/aoc/2023/day5/input.txt");
 
 	FILE *fp = NULL;
 	
@@ -275,15 +341,13 @@ void loadMap(char* line, Map* map)
 	map->rangeCount++;
 }
 
-
-long findDest(long trav, long dest, long source, long len)
+int comparator (const void* a, const void* b)
 {
-	// printf("%ld %ld %ld %ld\n", trav, dest, source, len);
-	if (trav >= source 
-	 && trav <= (source + len)) {
-		return dest + (trav - source);
-	} else {
-		return '\0';
-	}
-}
+    SeedPair arg1 = *(const SeedPair*)a;
+    SeedPair arg2 = *(const SeedPair*)b;
 
+	if (arg1.start < arg2.start) return -1;
+	if (arg1.start > arg2.start) return 1;
+
+	return 0;
+}
