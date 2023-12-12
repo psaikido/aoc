@@ -8,7 +8,9 @@
 
 typedef struct {
 	long dest[1024];
+	long destEnd[1024];
 	long source[1024];
+	long sourceEnd[1024];
 	long len[1024];
 	long delta[1024];
 	long rangeCount;
@@ -25,6 +27,7 @@ void parseForMap(FILE** fp, Map* map, char* target);
 void loadMap(char* line, Map* map);
 long getSourceNum(Map* map, long i);
 int comparator (const void* a, const void* b);
+void printMap(Map* map, char* name);
 
 
 int main() 
@@ -36,6 +39,17 @@ int main()
 	long seedCount = 0;
 	long lineCount = 0;
 	
+	long seed = '\0';
+	long soil = '\0';
+	long fert = '\0';
+	long water = '\0';
+	long light = '\0';
+	long temp = '\0';
+	long hum = '\0';
+	long loc = '\0';
+	long lowest = 1000000000;
+	long seedPairCount = 0;
+
 	Map mapSeedToSoil;
 	mapSeedToSoil.rangeCount = 0;
 
@@ -69,82 +83,6 @@ int main()
 	// 	printf("seed %ld\n", seeds[i]);
 	// }
 
-	parseForMap(&fp, &mapSeedToSoil, "seed-to-soil map:\n");
-	// for (long i = 0; i < mapSeedToSoil.rangeCount; i++) {
-	// 	printf("mapSeedToSoil: %ld, %ld, %ld\n", 
-	// 		mapSeedToSoil.dest[i],
-	// 		mapSeedToSoil.source[i],
-	// 		mapSeedToSoil.len[i]
-	// 	);
-	// }
-
-	parseForMap(&fp, &mapSoilToFert, "soil-to-fertilizer map:\n");
-	// for (long i = 0; i < mapSoilToFert.rangeCount; i++) {
-	// 	printf("mapSoilToFert: %ld, %ld, %ld\n", 
-	// 		mapSoilToFert.dest[i],
-	// 		mapSoilToFert.source[i],
-	// 		mapSoilToFert.len[i]
-	// 	);
-	// }
-
-	parseForMap(&fp, &mapFertToWater, "fertilizer-to-water map:\n");
-	// for (long i = 0; i < mapFertToWater.rangeCount; i++) {
-	// 	printf("mapFertToWater: %ld, %ld, %ld\n", 
-	// 		mapFertToWater.dest[i],
-	// 		mapFertToWater.source[i],
-	// 		mapFertToWater.len[i]
-	// 	);
-	// }
-
-	parseForMap(&fp, &mapWaterToLight, "water-to-light map:\n");
-	// for (long i = 0; i < mapWaterToLight.rangeCount; i++) {
-	// 	printf("mapWaterToLight: %ld, %ld, %ld\n", 
-	// 		mapWaterToLight.dest[i],
-	// 		mapWaterToLight.source[i],
-	// 		mapWaterToLight.len[i]
-	// 	);
-	// }
-	
-	parseForMap(&fp, &mapLightToTemp, "light-to-temperature map:\n");
-	// for (long i = 0; i < mapLightToTemp.rangeCount; i++) {
-	// 	printf("mapLightToTemp: %ld, %ld, %ld\n", 
-	// 		mapLightToTemp.dest[i],
-	// 		mapLightToTemp.source[i],
-	// 		mapLightToTemp.len[i]
-	// 	);
-	// }
-
-	parseForMap(&fp, &mapTempToHum, "temperature-to-humidity map:\n");
-	// for (long i = 0; i < mapTempToHum.rangeCount; i++) {
-	// 	printf("mapTempToHum: %ld, %ld, %ld, %ld\n", 
-	// 		mapTempToHum.dest[i],
-	// 		mapTempToHum.source[i],
-	// 		mapTempToHum.len[i],
-	// 		mapTempToHum.delta[i]
-	// 	);
-	// }
-
-	parseForMap(&fp, &mapHumToLoc, "humidity-to-location map:\n");
-	// for (long i = 0; i < mapHumToLoc.rangeCount; i++) {
-	// 	printf("mapHumToLoc: %ld, %ld, %ld, %ld\n", 
-	// 		mapHumToLoc.dest[i],
-	// 		mapHumToLoc.source[i],
-	// 		mapHumToLoc.len[i],
-	// 		mapHumToLoc.delta[i]
-	// 	);
-	// }
-
-	long seed = '\0';
-	long soil = '\0';
-	long fert = '\0';
-	long water = '\0';
-	long light = '\0';
-	long temp = '\0';
-	long hum = '\0';
-	long loc = '\0';
-	long lowest = 1000000000;
-	long seedPairCount = 0;
-
 	for (long i = 1; i <= seedCount; i++) {
 		if (i % 2 == 0) {
 			seedPairs[seedPairCount].range = seeds[i];
@@ -156,53 +94,75 @@ int main()
 
 	qsort(seedPairs, seedPairCount, sizeof(SeedPair), comparator);
 
+	long s;
+	long e;
+	for (long i = 0; i < seedPairCount; i++) {
+		s = seedPairs[i].start;
+		e = s + seedPairs[i].range - 1;
+		printf("seeds start: %ld, end %ld\n", s, e);
+	}
+
+	parseForMap(&fp, &mapSeedToSoil, "seed-to-soil map:\n");
+	printMap(&mapSeedToSoil, "seed-soil");
+
+	parseForMap(&fp, &mapSoilToFert, "soil-to-fertilizer map:\n");
+	printMap(&mapSoilToFert, "soil-fert");
+
+	parseForMap(&fp, &mapFertToWater, "fertilizer-to-water map:\n");
+	printMap(&mapFertToWater, "fert-water");
+
+	parseForMap(&fp, &mapWaterToLight, "water-to-light map:\n");
+	printMap(&mapWaterToLight, "watr-light");
+	
+	parseForMap(&fp, &mapLightToTemp, "light-to-temperature map:\n");
+	printMap(&mapLightToTemp, "light-temp");
+
+	parseForMap(&fp, &mapTempToHum, "temperature-to-humidity map:\n");
+	printMap(&mapTempToHum, "temp-hum");
+
+	parseForMap(&fp, &mapHumToLoc, "humidity-to-location map:\n");
+	printMap(&mapHumToLoc, "hum-loc");
+
 	// the lowest location number can be obtained from
 	// seed number 82, which corresponds to soil 84, fertilizer 84, water
 	// 84, light 77, temperature 45, humidity 46, and location 46. So, the
 	// lowest location number is 46.
 
-	// long s;
-	// long e;
-	// for (long i = 0; i < seedPairCount; i++) {
-	// 	s = seedPairs[i].start;
-	// 	e = s + seedPairs[i].range - 1;
-	// 	printf("range start: %ld, end %ld\n", s, e);
+	// for (loc = seedPairs[0].start; loc < 104070864; loc++) {
+	// 	printf("i: %ld\n", loc);
+
+		// hum = getSourceNum(&mapHumToLoc, loc);
+		// temp = getSourceNum(&mapTempToHum, hum);
+		// light = getSourceNum(&mapLightToTemp, temp);
+		// water = getSourceNum(&mapWaterToLight, light);
+		// fert = getSourceNum(&mapFertToWater, water);
+		// soil = getSourceNum(&mapSoilToFert, fert);
+		// seed = getSourceNum(&mapSeedToSoil, soil);
+
+				// printf("loc: %ld\n", loc);
+				// printf("hum: %ld\n", hum);
+				// printf("temp: %ld\n", temp);
+				// printf("light: %ld\n", light);
+				// printf("water: %ld\n", water);
+				// printf("fert: %ld\n", fert);
+				// printf("soil: %ld\n", soil);
+				// printf("seed: %ld\n", seed);
+
+		// for (long j = 0; j < seedPairCount; j++) {
+		// 	if (seed >= seedPairs[j].start
+		// 	&& seed < seedPairs[j].start + seedPairs[j].range - 1) {
+		//
+		// 		if (loc < lowest) {
+		// 			lowest = loc;
+		// 		}
+		//
+		// 		printf("lowest: %ld\n\n", loc);
+		// 		exit(0);
+		// 	}
+		// }
+
+	// 	printf("\n");
 	// }
-
-	for (loc = 0; loc < 104070864; loc++) {
-		// printf("i: %ld\n", loc);
-
-		hum = getSourceNum(&mapHumToLoc, loc);
-		temp = getSourceNum(&mapTempToHum, hum);
-		light = getSourceNum(&mapLightToTemp, temp);
-		water = getSourceNum(&mapWaterToLight, light);
-		fert = getSourceNum(&mapFertToWater, water);
-		soil = getSourceNum(&mapSoilToFert, fert);
-		seed = getSourceNum(&mapSeedToSoil, soil);
-
-		for (long j = 0; j < seedPairCount; j++) {
-			if (seed >= seedPairs[j].start
-			&& seed < seedPairs[j].start + seedPairs[j].range - 1) {
-				printf("loc: %ld\n", loc);
-				printf("hum: %ld\n", hum);
-				printf("temp: %ld\n", temp);
-				printf("light: %ld\n", light);
-				printf("water: %ld\n", water);
-				printf("fert: %ld\n", fert);
-				printf("soil: %ld\n", soil);
-				printf("seed: %ld\n", seed);
-
-				if (loc < lowest) {
-					lowest = loc;
-				}
-
-				printf("lowest: %ld\n\n", loc);
-				exit(0);
-			}
-		}
-
-		// printf("\n");
-	}
 
 	return 0;
 }
@@ -317,6 +277,9 @@ void loadMap(char* line, Map* map)
 		lineCount++;
 	}
 
+	map->destEnd[idx] = map->dest[idx] + map->len[idx] - 1;
+	map->sourceEnd[idx] = map->source[idx] + map->len[idx] - 1;
+
 	// printf("map: %ld, %ld, %ld, %ld\n", 
 	// 	map->dest[idx], 
 	// 	map->source[idx], 
@@ -337,4 +300,18 @@ int comparator (const void* a, const void* b)
 	if (arg1.start > arg2.start) return 1;
 
 	return 0;
+}
+
+
+void printMap(Map* map, char* name)
+{
+	for (long i = 0; i < map->rangeCount; i++) {
+		printf("%10s: d:%2ld, de:%2ld, s:%2ld, se:%2ld\n", 
+			name,
+			map->dest[i],
+			map->destEnd[i],
+			map->source[i],
+			map->sourceEnd[i]
+		);
+	}
 }
