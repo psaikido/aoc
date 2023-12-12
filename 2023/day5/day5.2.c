@@ -154,7 +154,7 @@ int main()
 		}
 	}
 
-	// qsort(seedPairs, seedPairCount, sizeof(SeedPair), comparator);
+	qsort(seedPairs, seedPairCount, sizeof(SeedPair), comparator);
 
 	// the lowest location number can be obtained from
 	// seed number 82, which corresponds to soil 84, fertilizer 84, water
@@ -173,23 +173,11 @@ int main()
 		// printf("i: %ld\n", loc);
 
 		hum = getSourceNum(&mapHumToLoc, loc);
-		// printf("hum: %ld\n", hum);
-
 		temp = getSourceNum(&mapTempToHum, hum);
-		// printf("temp: %ld\n", temp);
-
 		light = getSourceNum(&mapLightToTemp, temp);
-		// printf("light: %ld\n", light);
-
 		water = getSourceNum(&mapWaterToLight, light);
-		// printf("water: %ld\n", water);
-
 		fert = getSourceNum(&mapFertToWater, water);
-		// printf("fert: %ld\n", fert);
-
 		soil = getSourceNum(&mapSoilToFert, fert);
-		// printf("soil: %ld\n", soil);
-
 		seed = getSourceNum(&mapSeedToSoil, soil);
 
 		for (long j = 0; j < seedPairCount; j++) {
@@ -240,8 +228,8 @@ FILE* getFile()
 {
 	char filename[100];
 	strcpy (filename, getenv("HOME"));
-	// strcat (filename, "/code/aoc/2023/day5/example.txt");
-	strcat (filename, "/code/aoc/2023/day5/input.txt");
+	strcat (filename, "/code/aoc/2023/day5/example.txt");
+	// strcat (filename, "/code/aoc/2023/day5/input.txt");
 
 	FILE *fp = NULL;
 	
