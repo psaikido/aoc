@@ -116,19 +116,21 @@ int main()
 
 	parseForMap(&fp, &mapTempToHum, "temperature-to-humidity map:\n");
 	// for (long i = 0; i < mapTempToHum.rangeCount; i++) {
-	// 	printf("mapTempToHum: %ld, %ld, %ld\n", 
+	// 	printf("mapTempToHum: %ld, %ld, %ld, %ld\n", 
 	// 		mapTempToHum.dest[i],
 	// 		mapTempToHum.source[i],
-	// 		mapTempToHum.len[i]
+	// 		mapTempToHum.len[i],
+	// 		mapTempToHum.delta[i]
 	// 	);
 	// }
 
 	parseForMap(&fp, &mapHumToLoc, "humidity-to-location map:\n");
 	// for (long i = 0; i < mapHumToLoc.rangeCount; i++) {
-	// 	printf("mapHumToLoc: %ld, %ld, %ld\n", 
+	// 	printf("mapHumToLoc: %ld, %ld, %ld, %ld\n", 
 	// 		mapHumToLoc.dest[i],
 	// 		mapHumToLoc.source[i],
-	// 		mapHumToLoc.len[i]
+	// 		mapHumToLoc.len[i],
+	// 		mapHumToLoc.delta[i]
 	// 	);
 	// }
 
@@ -140,7 +142,7 @@ int main()
 	long temp = '\0';
 	long hum = '\0';
 	long loc = '\0';
-	long totals[seedCount];
+	long lowest = 1000000000;
 	long seedPairCount = 0;
 
 	for (long i = 1; i <= seedCount; i++) {
@@ -152,7 +154,7 @@ int main()
 		}
 	}
 
-	qsort(seedPairs, seedPairCount, sizeof(SeedPair), comparator);
+	// qsort(seedPairs, seedPairCount, sizeof(SeedPair), comparator);
 
 	// the lowest location number can be obtained from
 	// seed number 82, which corresponds to soil 84, fertilizer 84, water
@@ -167,10 +169,10 @@ int main()
 	// 	printf("range start: %ld, end %ld\n", s, e);
 	// }
 
-	for (long i = 0; i < 10000000000; i++) {
-		// printf("i: %ld\n", i);
+	for (loc = 0; loc < 104070864; loc++) {
+		// printf("i: %ld\n", loc);
 
-		hum = getSourceNum(&mapHumToLoc, i);
+		hum = getSourceNum(&mapHumToLoc, loc);
 		// printf("hum: %ld\n", hum);
 
 		temp = getSourceNum(&mapTempToHum, hum);
@@ -192,7 +194,8 @@ int main()
 
 		for (long j = 0; j < seedPairCount; j++) {
 			if (seed >= seedPairs[j].start
-			&& seed <= seedPairs[j].start + seedPairs[j].range - 1) {
+			&& seed < seedPairs[j].start + seedPairs[j].range - 1) {
+				printf("loc: %ld\n", loc);
 				printf("hum: %ld\n", hum);
 				printf("temp: %ld\n", temp);
 				printf("light: %ld\n", light);
@@ -200,7 +203,12 @@ int main()
 				printf("fert: %ld\n", fert);
 				printf("soil: %ld\n", soil);
 				printf("seed: %ld\n", seed);
-				printf("lowest loc: %ld\n", i);
+
+				if (loc < lowest) {
+					lowest = loc;
+				}
+
+				printf("lowest: %ld\n\n", loc);
 				exit(0);
 			}
 		}
